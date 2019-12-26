@@ -1,11 +1,12 @@
-/** \file max17201.h ******************************************************
+/** \file max17055.c ******************************************************
  *
- *             Project: MAX17201
- *            Filename: MAX17201.h
- *         Description: Header file for the Main application module MAX17201 example program.
+ *             Project: MAX17205
+ *            Filename: max17205.c
+ *         Description: This module contains the Main application for the MAX5715 example program.
  *
- *    
- *\n                                        
+ *    Revision History:
+ *\n                    10 May,2018    Rev 00.10 TTS    Initial release.
+ *\n                                      
  *\n                    		
  *
  *  --------------------------------------------------------------------
@@ -13,15 +14,15 @@
  *  This code follows the following naming conventions:
  *
  *\n    char                    ch_pmod_value
- *\n    char (array)            s_pmod_string[16]
- *\n    float                  	f_pmod_value
- *\n    int                    	n_pmod_value
+ *\n    char (array)             s_pmod_string[16]
+ *\n    float                  	 f_pmod_value
+ *\n    int                    	 n_pmod_value
  *\n    int (array)             an_pmod_value[16]
  *\n    uint16_t                u_pmod_value
- *\n    uint16_t (array)        au_pmod_value[16]
- *\n    uint8_t                 uch_pmod_value
- *\n    uint8_t (array)         auch_pmod_buffer[16]
- *\n    unsigned int          	un_pmod_value
+ *\n    uint16_t (array)             au_pmod_value[16]
+ *\n    uint8_t                     	uch_pmod_value
+ *\n    uint8_t (array)              auch_pmod_buffer[16]
+ *\n    unsigned int     	un_pmod_value
  *\n    int *                   pun_pmod_value
  *
  *  ------------------------------------------------------------------------- */
@@ -56,293 +57,285 @@
  * property whatsoever. Maxim Integrated Products retains all ownership rights.
  *
  ***************************************************************************/
-/* Define to prevent recursive inclusion -------------------------------------*/
-
-#ifndef _H
-#define _H
-#include "stm32f10x.h"
-//#include "../iic/iic.h"
-//#include "../IIC/I2C.h"
-
-/** 
-  * @brief  Algorithm Output Registers
-  */
-
-/** 
-  * @brief  Algorithm Output Registers [Address]
-  */
-
-#define AvCap                       ((uint16_t)0x1F)
-#define AvSOC                       ((uint16_t)0x0E)
-#define RepCap                      ((uint16_t)0x05)
-#define RepSOC                      ((uint16_t)0x06)
-#define Temp                        ((uint16_t)0x08)
-#define FullCap                     ((uint16_t)0x10)
-#define FullCapRep                  ((uint16_t)0x35)
-#define FullCapNom                  ((uint16_t)0x23)
-#define TTE                         ((uint16_t)0x11)
-#define TTF                         ((uint16_t)0x20)
-#define Age                         ((uint16_t)0x07)
-#define Cycles                      ((uint16_t)0x17)
-#define TimerH                      ((uint16_t)0xBE)
-#define AgeForecast                 ((uint16_t)0xB9)
-#define RCell                       ((uint16_t)0x14)
-#define VRipple                     ((uint16_t)0xBC)
-
-
-/** 
-  * @ModelGauge m5 Learned information [Address]
-  */
-
-#define FullCapNom                  ((uint16_t)0x23)//??
-#define Cycles					          	((uint16_t)0x17)//??
-#define TimerH					 				    ((uint16_t)0xBE)//??
-
-#define nQRTable00									((uint16_t)0x01A0)//??
-#define nQRTable01									((uint16_t)0x01A1)//??
-#define nQRTable02									((uint16_t)0x01A2)//??
-#define nQRTable03									((uint16_t)0x01A3)//??
-
-#define IAvgEmpty                   ((uint8_t)0x36)//??
-#define RComp0				 							((uint16_t)0x38)//??
-#define TempCo				 				    	((uint16_t)0x39)//??
-#define FullCapRep									((uint16_t)0x35)//??
-
-
-/** 
-  * @ModelGauge m5 Algorithm Configuration [Address]
-  */
-
-#define nRippleCfg                  ((uint16_t)0x01B1)//??
-#define nConvgCfg                   ((uint16_t)0x01B7)//??
-#define nAgeFcCfg                   ((uint16_t)0x01D2)//??
-#define nLearnCfg                   ((uint16_t)0x019F)//??
-#define nRelaxCfg                   ((uint16_t)0x01B6)//??
-#define nMiscCfg                    ((uint16_t)0x01B2)//??
-
-#define AtRate                      ((uint16_t)0x0004)//??
-
-#define nPackCfg                    ((uint16_t)0x01B5)//??
-#define nRSense                     ((uint16_t)0x01CF)//No Nonvolatile
 
 
 
 
+#include "../MAX17201_IIC/max17201_I2C.h"
+#include "../gui/gui.h"
+#include "max17201.h"
+#include "../malloc/malloc.h"
+#include "../usart/usart.h"
 
-/** 
-  * @ModelGauge m5 Analog input [Address]
-  */
+ 
 
-#define VCell                      ((uint16_t)0x0009)//??
-#define Current                    ((uint16_t)0x000A)//??
-#define AvgVCell                   ((uint16_t)0x0019)//??
-#define AvgCurrent                 ((uint16_t)0x000B)//??
-
-#define AvgTemp1                   ((uint16_t)0x0037)//0x0137
-#define AvgTemp2                   ((uint16_t)0x0039)//0x0139
-#define AvgIntTemp                 ((uint16_t)0x0038)//0x0138
+uint8_t  RvBuffer[3];
+uint16_t RvTemp;
 
 
-/** 
-  * @ModelGauge m5 Application Specific [Address]
-  */
-
-#define nDesignVoltage             ((uint16_t)0x01D3)//??
-#define nDesignCap                 ((uint16_t)0x01B3)//??
-#define nIChgTerm                  ((uint16_t)0x019C)//??
-
-#define Status                     ((uint16_t)0x0000)//??
-
-/** 
-  * @ModelGauge m5 Algorithm Model Registers [Address]
-  */
-
-#define nXTable0                  ((uint16_t)0x0180)//??
-#define nXTable1                  ((uint16_t)0x0181)//??
-#define nXTable2                  ((uint16_t)0x0182)//??
-#define nXTable3                  ((uint16_t)0x0183)//??
-#define nXTable4                  ((uint16_t)0x0184)//??
-#define nXTable5                  ((uint16_t)0x0185)//??
-#define nXTable6                  ((uint16_t)0x0186)//??
-#define nXTable7                  ((uint16_t)0x0187)//??
-#define nXTable8                  ((uint16_t)0x0188)//??
-#define nXTable9                  ((uint16_t)0x0189)//??
-#define nXTable10                 ((uint16_t)0x018A)//??
-#define nXTable11                 ((uint16_t)0x018B)//??
-
-#define nOCVTable0                ((uint16_t)0x0190)//??
-#define nOCVTable1                ((uint16_t)0x0191)//??
-#define nOCVTable2                ((uint16_t)0x0192)//??
-#define nOCVTable3                ((uint16_t)0x0193)//??
-#define nOCVTable4                ((uint16_t)0x0194)//??
-#define nOCVTable5                ((uint16_t)0x0195)//??
-#define nOCVTable6                ((uint16_t)0x0196)//??
-#define nOCVTable7                ((uint16_t)0x0197)//??
-#define nOCVTable8                ((uint16_t)0x0198)//??
-#define nOCVTable9                ((uint16_t)0x0199)//??
-#define nOCVTable10               ((uint16_t)0x019A)//??
-#define nOCVTable11               ((uint16_t)0x019B)//??
-
-#define nQRTable00                ((uint16_t)0x01A0)//??
-#define nQRTable10                ((uint16_t)0x01A1)//??
-#define nQRTable20                ((uint16_t)0x01A2)//??
-#define nQRTable30                ((uint16_t)0x01A3)//??
-
-#define nFullSOCThr               ((uint16_t)0x01C6)//??
-#define nVEmpty                   ((uint16_t)0x019E)//??
-#define nDesignCap                ((uint16_t)0x01B3)//??
-#define nRFastVShdn               ((uint16_t)0x01D5)//??
-#define nIChgTerm                 ((uint16_t)0x019C)//??
-#define nRComp0                   ((uint16_t)0x01A6)//??
-#define nTempCo                   ((uint16_t)0x01A7)//??
-#define nIAvgEmpty                ((uint16_t)0x01A8)//??
-#define nIAvgEmpty                ((uint16_t)0x01A8)//??
-
-/** 
-  * @[Value] ModelGauge m5 package configuration 
-  */
-
-#define En_CxEn                  ((uint16_t)0x0100)//Enable Cellx voltage mesurement
-#define En_BtEn                  ((uint16_t)0x0200)//Enable the voltage measure of BATT Channel,only if the CxEn=0 and ChEn=0
-#define En_ChEn                  ((uint16_t)0x0400)//Enable the voltage measure of Cell1 Cell2 and VBATT pins
-
-#define Sl_Addr                   ((uint8_t)0x6C)
-#define Md_Addr                   ((uint8_t)0x16)
-#define Md_Top                    ((uint8_t)0x80)
-/*----------------------------------------------------------
-nPackCfg Setting--1
-The next four pin setting shows as follows:
-FGT A2EN  A1EN TDEN => FUEL Gauge Input/Temp Register
-0000  => Internal/DieTemp
-1010  => AIN1/Temp1
-0100  => AIN2/Temp2
-0101  => AIN2/Temp2
-0011  => Inter/Die
-1011  => AIN1/Temp1
-1110  => AIN1/Temp1
-0110  => Temp1and Temp2
-1111  =>AIN1/Temp1
-0111  =>Temp1 and Temp2 
-
-Other configurations are invalid
----------------------------------------------------------------  */
-#define Pck_En_TdEn                  ((uint16_t)0x0800)//Die temp enable
-#define Pck_En_A1En                  ((uint16_t)0x1000)//AIN1 Enable
-#define Pck_En_A2En                  ((uint16_t)0x2000)//AIN2 Enable
-#define Pck_En_FGT                   ((uint16_t)0x8000)//Fuel Gauge temprature input selet in combination with others
-
-#define CommStat        	  		 		 ((uint16_t)0x0061)//??
-
-/*----------------------------------------------------------
-nPackCfg Setting --2
-Channel Enable 
----------------------------------------------------------------  */
-#define Pck_2S_4S_NoBal                ((uint16_t)0x0200)//BtEN on enable voltage measurements of the VBATT pin
-#define Pck_2S_4S_Bal                  ((uint16_t)0x0400)//ChEn Set to 1 to enable voltage measurements of the CELL1, CELL2, and VBATT pins. 
-#define Pck_4S_More                    ((uint16_t)0x0100)//CELLx Channel Enable. Set to 1 to enable voltage measurements of the CELLx pin.
+uint8_t s_addr=Sl_Addr;//device address with W/R 0
+uint8_t m_addr=Md_Addr;//SBS slave address
 
 
-/*----------------------------------------------------------
-nPackCfg Setting --3
-Channel Enable 
-Balancing Threshold = 1.25mV*2^BALCFG
----------------------------------------------------------------  */
-#define  Pck_BALCFG_OFF                ((uint16_t)0x0000)// cell balancing is disabled.
-#define  Pck_BALCFG_25                 ((uint16_t)0x0020)//          
-#define  Pck_BALCFG_50                 ((uint16_t)0x0040)//  
-#define  Pck_BALCFG_100                ((uint16_t)0x0060)// 
-#define  Pck_BALCFG_200                ((uint16_t)0x0080)//
-#define  Pck_BALCFG_400                ((uint16_t)0x00A0)//
-#define  Pck_BALCFG_800                ((uint16_t)0x00C0)//
-#define  Pck_BALCFG_1600               ((uint16_t)0x00E0)//
-
-/*----------------------------------------------------------
- nPackCfg Setting --4
- number of cells in range 1~15(0x0~0xF)
-
- EZ mode settings
----------------------------------------------------------------  */
-#define  Pck_N_Cells      		         ((uint16_t)0x0005)// 5Cells
-
-/*----------------------------------------------------------
- nPackCfg Setting --5 
- Quick setting 
- skip the steps above
- there's four quick settings optional
- Name with an "N" needs to combine with Pck_N_Cells
----------------------------------------------------------------  */
-#define  Pck_Q_1S                      ((uint16_t)0x1C01)// 1S Cell Pack
-#define  Pck_Q_2_4_ChnM_N              ((uint16_t)0x3A00)// 2S–4S Cell Pack w/o Channel Measurements 
-#define  Pck_High_Cell_N               ((uint16_t)0x3900)//High-Cell Count Pack
-#define  Pck_2S_ChnM                    ((uint16_t)0x3C62)//2S Cell Pack with Channel Measurements
-#define  Pck_3S_ChnM                    ((uint16_t)0x3C63)//3S Cell Pack with Channel Measurements 
-
-typedef struct 
+void WriteRegistor(uint16_t reg, uint16_t value)
 {
-  uint8_t Cell_Num;           /*LSB 4bits of PackCgf to set number of cells  */
-  
-  uint8_t Bal_Cgf;           /*Bit 7~ bit5 of PackCgf to set Balance threhold, default value is "0"--balancing disabled*/
-  
-  uint16_t PackCon;            /* Other configuration of Package*/
-  
-}Pack_InitStruct;
+    uint8_t buffer[2];
+	uint8_t i=2;
+	uint8_t t_reg=0;
+    buffer[0]=(uint8_t)(value&0xff);
+    buffer[1]=(uint8_t)(value>>8&0xff);
+	t_reg=(uint8_t)(reg&0xff);
+  if (reg>0xff)
+	{ 
+     I2C_MultiByteWrite(Md_Addr,buffer,t_reg,i);
+	}
+		else
+	{
+     I2C_MultiByteWrite(Sl_Addr,buffer,t_reg,i);
+	}
+}
 
 
-/** 
-  * @[Value] Smart Battery Compliant Operation
-  */
-  
-#define En_TdEn                  ((uint16_t)0x0800)//Die temp enable
 
-  
-typedef struct
+uint16_t ReadRegistor (uint16_t reg)
 {
-  uint16_t Rev_Value;                      /*!< Value received */
+	  RvBuffer[0]=0;
+	  RvBuffer[1]=0;	 
+	if (reg>0xff)
+	{ 
+		uint8_t t_reg=0;
+		t_reg=(uint8_t)(reg&0xff);
+		I2C_MultiByteRead(Md_Addr,RvBuffer,t_reg,2);
+        RvTemp =(uint16_t)(((uint16_t)RvBuffer[1] << 8) | RvBuffer[0]);
+    return RvTemp;
+	}
+	else
+	{
+		I2C_MultiByteRead(Sl_Addr,RvBuffer,reg,2);
+        RvTemp =(uint16_t)(((uint16_t)RvBuffer[1] << 8) | RvBuffer[0]);
+		return RvTemp;
+	}
+}
 
-  uint8_t  Rev_CRC;                       /*!< CRC received*/
 
-}SBS_RevWord;
 
-typedef struct
+void WriteWordSBS(uint8_t reg, uint16_t value, uint8_t EnCrc)// To disable CRC set EnCrc=0
 {
-  uint8_t  Size;
-  
-  uint8_t  Data0;                      /*!< Value received */
-  
-  uint8_t  Data1;                      /*!< Value received */
-  
-  uint8_t  Data2;                      /*!< Value received */
+	if (EnCrc==0)
+	{	
+        uint8_t buffer[3];
+        uint8_t i=3;
+        buffer[0]=reg;
+        buffer[1]=(uint8_t)(value&0xff);
+        buffer[2]=(uint8_t)(value>>8&0xff);
+        I2C_MultiByteWrite(m_addr,buffer, reg,i);	
+		}
+	else
+		{
+        uint8_t buffer[4];
+        uint8_t i=4;
+        buffer[0]= reg;
+        buffer[1]=(uint8_t)(value&0xff);
+        buffer[2]=(uint8_t)(value>>8&0xff);
+        buffer[3]=EnCrc;
+        I2C_MultiByteWrite(m_addr,buffer, reg,i);
+		}
+		
+	
+}
 
-  uint8_t  Data3;                      /*!< Value received */
-
-  uint8_t  Rev_CRC;                       /*!< CRC received*/
-
-}SBS_RevBlock;
-
-typedef struct
+uint16_t ReadWordSBS(uint8_t reg, uint8_t PEC)//Set PEC=1 will return PEC
 {
-	uint16_t PckCf; //configuration 
-	int      Rsen;  //value of Rsense milliohm
-	float    Vemp;  //(V) Empty voltage per cell
-	int      DesCap;// cell size mAh
-	uint16_t CellNo;// cell number
-}EZ_setting;
+    SBS_RevWord ReadBuf;
+    RvBuffer[0]=0;
+	RvBuffer[1]=0;
+	RvBuffer[2]=0;
+	if (PEC==0)
+		{
+          I2C_MultiByteRead(m_addr,RvBuffer,reg,2);
+          ReadBuf.Rev_Value=(uint16_t)(((uint16_t)RvBuffer[1] << 8) | RvBuffer[0]);
+          ReadBuf.Rev_CRC=0;
+          return ReadBuf.Rev_Value;
+		}
+	else
+		{
+           I2C_MultiByteRead(m_addr,RvBuffer,reg,3);
+           ReadBuf.Rev_Value =(uint16_t)(((uint16_t)RvBuffer[2] << 16) | ((uint16_t)RvBuffer[1] << 8));
+           ReadBuf.Rev_CRC=(uint16_t)RvBuffer[0];
+           return ReadBuf.Rev_Value;
+		}
+}
 
 
+int WriteVerifyReg( uint16_t reg, uint16_t value)
+{
+	int flag;
+	int retries = 0;	 
+	uint16_t read_value=0;
+  do {
+       WriteRegistor (reg, value);
+       delay_ms(1); //wait
+       read_value = ReadRegistor (reg) ;
+	   retries++;
+     }
+ while ((value != read_value) && retries<4);
+ if (value == read_value)
+	 flag=0;
+ else
+	 flag=1;
+ return flag;
+	
+}
 
-/* Public */
-void WriteRegistor(uint16_t reg, uint16_t value);
-uint16_t ReadRegistor (uint16_t reg);
-void WriteWordSBS(uint8_t reg, uint16_t value, uint8_t EnCrc);
-uint16_t ReadWordSBS(uint8_t reg, uint8_t EnCrc); 
-int  WriteVerifyReg( uint16_t reg, uint16_t value);
-//uint8_t m_load(uint8_t name, uint8_t value, int con,uint8_t flag);
-void WriteModel(uint8_t* pbuffer);
-void Package_init(Pack_InitStruct Pack);
-void max17205_init_chip(float ChargeVolt);
-int WriteVerifyModel(uint8_t* pbuffer);
-void Max17205_Reset_Chip(void);
-void Max17205_Load_NV(void);
-int Max17205_EZ_Mode(EZ_setting cfg);
-uint16_t Max17205_RemainNV_Times(void);
-#endif
+
+/*Block write is only available for 0x0180~0x01ff or ox0000~0x01ff
+  to load model is writing 0x0180~0x01df8
+ */
+
+void LoadModel(uint8_t* pbuffer)
+{
+	uint16_t reg=0x180; //load model from 0x0180h~0x01DF
+	uint16_t value;
+	uint16_t read_value;
+	int i=0;
+	for(i=0;i<191;i=i+2)
+	{
+		if ((reg==0x1bc)||(reg==0x1bd)||(reg==0x1be)||(reg==0x1bf))//RomID is not reprogramable
+		{
+			reg++;
+		}
+		else
+		{
+		value=(uint16_t)((pbuffer[i]<<8)&0xff00)+(uint16_t)pbuffer[i+1];
+		WriteRegistor (reg, value);
+    delay_ms(1); //wait
+    //read_value = ReadRegistor (reg);
+		reg++;
+	  }
+
+	}
+}
+
+
+void WriteModel(uint8_t* pbuffer)
+{
+	uint8_t reg=0x80;
+  I2C_MultiByteWrite(Md_Addr,pbuffer,reg,96);//load model from 0x0180h~0x01DF
+}
+
+//void Package_init(Pack_InitStruct Pack)
+//{
+//  uint16_t Pck_Temp=0x0000;
+//     
+//	 if (2<=Pack.Cell_Num<=4)
+//	 	{
+//	 	 Pck_Temp=(uint16_t)(Pck_Temp|En_BtEn);
+//	 	}
+//	 else if (Pack.Cell_Num>4)
+//	 	Pck_Temp=(uint16_t)(Pck_Temp|En_CxEn);// 2S~4S setting Vs more than 4S setting
+//	 else 
+//	 	//printf ("Warnning! Cell Number out of range");
+
+//	 Pck_Temp=(uint16_t)(Pck_Temp|(Pack.Cell_Num & 0x0f));//input cell number
+//	 Pck_Temp=(uint16_t)(Pck_Temp|((Pack.Bal_Cgf<<1)&0x0f)<<4);//input Balance setting
+//	 Pck_Temp|=Pack.PackCon;
+//	 WriteVerifyReg(nPackCfg,Pck_Temp);
+//	 
+//		
+//}
+void Max17205_Reset_Chip()
+{
+	WriteRegistor(0x060, 0x000f);//POR IC
+	delay_ms(200);
+	WriteRegistor(0x0bb, 0x0001);//Reset firmware
+	delay_ms(200);
+}
+
+void Max17205_Reset_Cnf()
+{
+	WriteRegistor(0x0bb, 0x0001);//Reset firmware
+	delay_ms(200);
+}
+
+void Max17205_Load_NV()
+{
+	uint16_t temp=0;
+	uint8_t finish=0;
+	temp=ReadRegistor(Status);
+	if ((temp&0x0002)==0x0002)
+	{
+		temp=temp&0xffffd;
+		WriteRegistor(Status,temp);//clear POR 
+	}
+	else{}
+		
+	while(finish==0)
+	{
+			if((ReadRegistor(CommStat)&0x0002)==0)
+			{
+				do
+					{
+					temp=ReadRegistor(CommStat);
+					temp=temp&0xfffb;// keep the status & Clear CommStat.NVError bit
+					WriteRegistor(CommStat, temp);	//Clear CommStat.NVError bit
+					WriteRegistor(0x060, 0xe904);	//initiate a block copy
+					delay_ms(9900);
+				}
+				while((ReadRegistor(CommStat)&0x0004)==0x0004);
+			  while((ReadRegistor(CommStat)&0x0002)==0x0002);
+				finish=1;
+			}
+			else
+			{
+				finish=0;
+			}
+		}
+	WriteRegistor(0x060, 0x000f);//POR IC
+    delay_ms(100000);//tPOR=100ms
+
+//	while((ReadRegistor(Status)&0x0002)==0x0002) //wait untile POR detected
+//		{
+//			delay_ms(1);
+//		}
+	temp=ReadRegistor(Status);
+	temp=temp&0xffffd;
+    WriteRegistor(Status,temp);//clear POR 
+	WriteRegistor(0x0bb, 0x0001);//Reset firmware
+	delay_ms(10000000);//tPOR=100ms
+	
+}
+
+uint16_t Max17205_RemainNV_Times() //remaining configuration memory writes
+{
+    uint16_t rem_times=0;
+	WriteRegistor(0x060, 0xE2FA);//Recall remaining configuration memory writes
+    delay_ms(100000);//tRECALL=5ms *2
+	rem_times=ReadRegistor (0x1ED);
+	
+ return rem_times;	
+	 
+}
+
+		
+		
+int Max17205_EZ_Mode(EZ_setting cfg)
+{
+	uint16_t temp_cap,temp_cnf, temp_sens, temp_vem,temp;
+	int retries;
+	temp_cap=(uint16_t)(cfg.DesCap/2);
+	temp_cnf=cfg.PckCf;
+	temp_sens=(uint16_t)(cfg.Rsen*100);
+	temp =ReadRegistor(nVEmpty); //read out the VE &VR
+	temp=temp&0xf8;//protec VR
+	temp_vem=((uint16_t)(cfg.Vemp*100)<<7)|temp;
+	
+	retries=WriteVerifyReg(nPackCfg,temp_cnf);
+	retries=retries+WriteVerifyReg(nRSense,temp_sens);
+	retries=retries+WriteVerifyReg(nVEmpty,temp_vem);
+	retries=retries+WriteVerifyReg(nDesignCap,temp_cap);
+	delay_ms(100);
+  return retries;
+}
+	
+	 	
+
